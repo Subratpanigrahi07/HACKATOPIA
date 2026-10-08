@@ -1,5 +1,3 @@
-# HACKATOPIA
-
 # Financial Crime Graph Intelligence Platform
 ### *Mule Account Money-Trail Hunter — Problem Statement FT-03*
 
@@ -59,6 +57,32 @@ The **Financial Crime Graph Intelligence Platform** is an investigator-centric i
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### High-Level Architecture Snapshot
+
+```mermaid
+graph LR
+    A["Raw Transaction Stream & Victim Report"] --> B["FastAPI Intelligence Gateway"]
+    B --> C["NetworkX Graph Engine (BFS Trails)"]
+    B --> D["8-Factor Explainable Risk Engine"]
+    B --> E["Next-Hop Predictive Matrix"]
+    C --> F["React 19 Canvas Console (60 FPS)"]
+    D --> F
+    E --> F
+    F --> G["Preemptive Freeze Action (NPCI API)"]
+    F --> H["Executive Dossier (.md Export)"]
+
+    style A fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#f8fafc
+    style B fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#f8fafc
+    style C fill:#1e1b4b,stroke:#6366f1,stroke-width:2px,color:#f8fafc
+    style D fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#f8fafc
+    style E fill:#4c1d95,stroke:#a855f7,stroke-width:2px,color:#f8fafc
+    style F fill:#0284c7,stroke:#38bdf8,stroke-width:2px,color:#ffffff
+    style G fill:#991b1b,stroke:#ef4444,stroke-width:2px,color:#ffffff
+    style H fill:#065f46,stroke:#10b981,stroke-width:2px,color:#ffffff
+```
+
+> 🔍 *For the complete visual subsystem architecture, dataflow pipeline, and component hierarchy, see [Section 4: System Architecture & Technical Design](#4-system-architecture--technical-design).*
+
 ---
 
 ## 2. Anatomy of the Financial Crime: Digital Arrest & Mule Networks
@@ -93,40 +117,149 @@ The platform enforces a disciplined investigative workflow tailored for Tier-2 a
 
 ## 4. System Architecture & Technical Design
 
-The platform uses a modern decoupled architecture that runs entirely on local infrastructure with zero heavy external dependencies.
+The platform employs a decoupled, multi-tier intelligence architecture designed for local execution speed, determinism, and sub-millisecond graph query responses.
+
+### 4.1 Visual System Architecture (Mermaid)
+
+```mermaid
+flowchart TB
+    subgraph CLIENT["INVESTIGATION CONSOLE (Frontend Tier - React 19 + TypeScript + Vite)"]
+        UI_DASH["Dashboard & Alert Stream<br/>(Metrics, High-Risk Feeds, KPIs)"]
+        UI_MODES["Interactive Canvas Viewport (60 FPS)<br/>• Mode 1: Money Flow (L-to-R DAG)<br/>• Mode 2: Network Ecosystem<br/>• Mode 3: Timeline Replay Scrubber<br/>• Mode 4: Blast Radius Concentric Rings"]
+        UI_PANEL["Investigator Side Drawer<br/>• 8-Factor Risk Breakdown<br/>• Shared Hardware Fingerprints<br/>• Action Recommendations"]
+        UI_CASE["Case & Dossier Hub<br/>• Persistent Field Notes Feed<br/>• Executive Markdown Exporter<br/>• NPCI Freeze API Trigger"]
+        CLI_ENG["Client-Side Graph Fallback Engine<br/>(Adjacency Lists, BFS Traversal, Local Scoring)"]
+    end
+
+    subgraph API["INTELLIGENCE API GATEWAY (Backend Tier - FastAPI + Python 3.13)"]
+        ROUTER_DASH["/api/dashboard<br/>Summary & KPI Aggregates"]
+        ROUTER_GRAPH["/api/graph<br/>Topology & Blast Radius"]
+        ROUTER_RISK["/api/risk<br/>8-Factor Explainable Scoring"]
+        ROUTER_CASES["/api/cases<br/>Trails, Notes, Dossier Export"]
+        ROUTER_ACTIONS["/api/actions<br/>Simulated Freeze & Audit Logs"]
+    end
+
+    subgraph ENGINES["ANALYTICS & INTELLIGENCE CORE (NetworkX + Heuristics)"]
+        ENG_GRAPH["Graph Engine (NetworkX)<br/>• Directed Multigraph Model<br/>• BFS Multi-Hop Path Tracing<br/>• Pass-Through & Velocity Ratios"]
+        ENG_RISK["Explainable Risk Engine<br/>• 8-Factor Normalized Score (0-100)<br/>• Exact Point Attribution Breakdown"]
+        ENG_NEXT["Next-Hop Predictive Engine<br/>• Transition Probability Matrix<br/>• Amount Matching & Velocity Decay"]
+        ENG_BLAST["Blast Radius Engine<br/>• 1-Hop, 2-Hop, 3-Hop Concentric BFS<br/>• Downstream Exposure Calculation"]
+        ENG_NET["Network Detector<br/>• Syndicate Community Clustering<br/>• Cyclic Flow / Loop Detection"]
+    end
+
+    subgraph DATA["PERSISTENCE & REPOSITORY TIER (SQLAlchemy 2.0 ORM)"]
+        DB[(SQLite / PostgreSQL<br/>muletracer.db)]
+        T_ACCTS[("Accounts Table<br/>(Risk, Bank, Device ID)")]
+        T_TXNS[("Transactions Table<br/>(Amounts, Timestamps, Rails)")]
+        T_CASES[("Cases Table<br/>(Types, Victims, Next Hops)")]
+        T_NOTES[("Case Notes Table<br/>(Authors, Timestamps, Content)")]
+        T_AUDIT[("Audit Logs Table<br/>(Actors, Actions, Timestamps)")]
+    end
+
+    %% Interactions
+    UI_DASH -->|REST / JSON| ROUTER_DASH
+    UI_MODES -->|REST / JSON| ROUTER_GRAPH
+    UI_PANEL -->|REST / JSON| ROUTER_RISK
+    UI_CASE -->|REST / JSON| ROUTER_CASES
+    UI_CASE -->|REST / JSON| ROUTER_ACTIONS
+
+    ROUTER_GRAPH --> ENG_GRAPH
+    ROUTER_GRAPH --> ENG_BLAST
+    ROUTER_RISK --> ENG_RISK
+    ROUTER_CASES --> ENG_GRAPH
+    ROUTER_CASES --> ENG_NEXT
+    ROUTER_DASH --> ENG_NET
+
+    ENG_GRAPH <--> DATA
+    ENG_RISK <--> DATA
+    ENG_BLAST <--> DATA
+    ENG_NEXT <--> DATA
+    ENG_NET <--> DATA
+
+    DATA --- T_ACCTS
+    DATA --- T_TXNS
+    DATA --- T_CASES
+    DATA --- T_NOTES
+    DATA --- T_AUDIT
+```
+
+---
+
+### 4.2 End-to-End Dataflow Pipeline
+
+The end-to-end dataflow from transaction ingestion to investigator intervention follows a deterministic 6-stage pipeline:
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                            FRONTEND LAYER (Investigation Console)                      │
-│   React 19 • TypeScript • Vite • Vanilla CSS Tokens • Lucide Icons                     │
+│                              END-TO-END DATAFLOW PIPELINE                              │
+├────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                        │
-│   ├── View Engine: 60 FPS HTML5 Canvas Renderer (sub-millisecond frame times)          │
-│   ├── Visualization Modes: Money Flow (L-to-R), Network Ecosystem, Timeline, Blast    │
-│   ├── Interactive HUD: Blast Radius Card, Path Finder BFS, Inspector Drawer            │
-│   ├── Case Hub: Case Notes Feed, Status Dropdown, Markdown Dossier Exporter            │
-│   └── Offline Fallbacks: Complete client-side graph engine mirrors backend endpoints   │
-└───────────────────────────────────────────┬────────────────────────────────────────────┘
-                                            │ REST API (HTTP/JSON)
-                                            ▼
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                             BACKEND LAYER (FastAPI Intelligence)                       │
-│   Python 3.13 • FastAPI • Pydantic v2 • SQLAlchemy 2.0 • NetworkX                      │
-│                                                                                        │
-│   ├── Routers: /api/dashboard, /api/graph, /api/risk, /api/cases, /api/actions         │
-│   ├── Graph Engine (NetworkX): Directed Multigraph, BFS Traversal, Cycle Detection     │
-│   ├── Risk Engine: 8-Factor Explainable Heuristics (0-100 normalized score)           │
-│   ├── Next-Hop Engine: Counterparty Transition Matrices + Velocity Decay               │
-│   ├── Blast Radius Engine: Concentric Hop Rings, Flow Accumulation, Exposure           │
-│   └── Network Detector: Syndicate Cluster Halos, High-density Community Rings          │
-└───────────────────────────────────────────┬────────────────────────────────────────────┘
-                                            │ SQL Query Engine
-                                            ▼
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                               PERSISTENCE & SYNTHETIC DATA                             │
-│   SQLite Database (muletracer.db) / PostgreSQL Compatible                              │
-│   • Accounts (25) • Transactions (35) • Cases (5) • Notes (4) • Audit Logs (5)         │
+│  [ Stage 1: Ingestion & Canonical Seeding ]                                            │
+│   Raw synthetic transactions (amounts, timestamps, payment rails, device fingerprints) │
+│   are normalized and validated using Pydantic schemas.                                 │
+│                                │                                                       │
+│                                ▼                                                       │
+│  [ Stage 2: Topological Graph Construction ]                                           │
+│   NetworkX Directed Multigraph G=(V, E) is built in memory.                            │
+│   Adjacency matrices, in/out degrees, and transaction sequences are indexed.           │
+│                                │                                                       │
+│                                ▼                                                       │
+│  [ Stage 3: Feature Engineering & Detection ]                                          │
+│   • Pass-through ratio computed: Sum(Out) / Sum(In)                                    │
+│   • Average velocity latency computed: t_out - t_in                                    │
+│   • Cycle detection: Depth-limited DFS for loops (A -> B -> C -> A)                    │
+│   • Shared device index: Inverted lookup of Device_ID -> Colluding Accounts            │
+│                                │                                                       │
+│                                ▼                                                       │
+│  [ Stage 4: Risk Scoring & Predictive Intelligence ]                                   │
+│   • 8-factor mathematical risk engine produces normalized 0–100 score                  │
+│   • Next-hop engine calculates transition probabilities and amount matching            │
+│   • Blast radius engine calculates 1-hop, 2-hop, 3-hop counts and downstream capital    │
+│                                │                                                       │
+│                                ▼                                                       │
+│  [ Stage 5: Canvas Interactive Visualization ]                                         │
+│   React 19 Canvas renders money flows at 60 FPS across 4 modes:                       │
+│   Money Flow DAG, Network Ecosystem, Timeline Replay, and Blast Radius rings.          │
+│                                │                                                       │
+│                                ▼                                                       │
+│  [ Stage 6: Investigator Action & Audit Trail ]                                        │
+│   • Analyst inspects evidence and adds persistent case field notes                     │
+│   • Simulated NPCI API triggers account freeze review                                  │
+│   • Tamper-evident audit log records action timestamp and investigator actor ID        │
+│   • Markdown investigation dossier generated for executive/law enforcement export     │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+### 4.3 Component Subsystem Breakdown
+
+#### 1. Presentation Tier (`src/`)
+* **State Management (`AppContext.tsx`):** Centralized reducer managing loaded scam cases, active trails, selected account focus, frozen accounts, filter criteria, and notification toasts.
+* **Canvas 60 FPS Render Engine:** High-performance HTML5 Canvas rendering loop utilizing `requestAnimationFrame`. Features sub-pixel particle animation along active edges, dynamic wave layout, and glowing radar pulse rings around critical-risk nodes.
+* **API Service Client (`api.ts`):** Typed asynchronous REST client communicating with FastAPI backend, equipped with offline fallback to local calculations if network disruption occurs.
+
+#### 2. Intelligence API Gateway (`backend/routers/`)
+* **`graph.py`:** Provides graph topological structures (`/api/graph`), subgraphs for specific cases, and multi-hop blast radius metrics (`/api/graph/blast-radius/{id}`).
+* **`cases.py`:** Manages case retrieval, multi-hop trail reconstruction (`/api/cases/{id}/trail`), persistent case notes (`/api/cases/{id}/notes`), case status updates (`/api/cases/{id}/status`), and formatted dossier generation (`/api/cases/{id}/export`).
+* **`risk.py`:** Exposes standalone account risk breakdowns (`/api/risk/account/{id}`) and next-hop destination predictions (`/api/prediction/next-hop/{id}`).
+* **`actions.py`:** Manages simulated administrative freeze actions (`/api/actions/freeze-recommendation`) and stores immutable investigator audit logs (`/api/actions/audit-logs`).
+* **`dashboard.py`:** Aggregates macro KPIs including active investigations, detected mule rings, and total network exposure.
+
+#### 3. Graph & Risk Engines (`backend/engine/`)
+* **`graph_engine.py`:** Core NetworkX engine handling directed graph construction, degree centrality, fan-in/fan-out, pass-through calculation, and BFS blast radius computations.
+* **`risk_engine.py`:** Transparent 8-factor scoring engine that assigns point contributions based on mathematical thresholds.
+* **`next_hop_engine.py`:** Transition probability matrix calculator with amount matching and temporal decay heuristics.
+* **`trail_engine.py`:** Deterministic money trail reconstructor tracing funds from initial victim debit to exit cash-out.
+* **`network_detector.py`:** Community detection engine identifying interconnected mule rings and circular layering patterns.
+
+#### 4. Persistence & Database Tier (`backend/models.py`)
+* Relational database using SQLAlchemy 2.0 with complete foreign-key referential integrity:
+  * `accounts`: Stores balance, risk score, KYC vintage, and hardware device fingerprint (`device_id`).
+  * `transactions`: Stores amount, timestamp, payment rail (UPI, IMPS, NEFT), risk score, and device ID.
+  * `cases`: Stores victim reference, reported transaction ID, loss amount, and lifecycle status.
+  * `case_notes`: Stores chronological investigator notes, author, and timestamp.
+  * `audit_logs`: Tamper-evident record of actions (`LOGIN`, `CASE_CREATED`, `FREEZE_RECOMMENDED`, `NOTE_ADDED`).
 
 ---
 
